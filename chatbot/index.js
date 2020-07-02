@@ -52,7 +52,7 @@ const ChatFlow_ = async (item, txt, idconv) =>{
       sql(`UPDATE tb_conv SET col_status = 1 WHERE col_phone = '${idconv.phone}'`);
     }
 
-    if(idconv.state == 1){
+    if(idconv.status == 1){
       switch(parseInt(txt)){
         case 1:
           sendMessage(sender, 'Hi, welocome to WhatsApp Chatbot', item.idInstance);
@@ -69,7 +69,7 @@ const ChatFlow_ = async (item, txt, idconv) =>{
             },2000);
             break;
         default:
-          sendMsj(sender, 'Enter the number of the required action:\\n1. Send Text\\n2. Send image', item.idInstance);
+          sendMessage(sender, 'Enter the number of the required action:\\n1. Send Text\\n2. Send image', item.idInstance);
           break;
       }
     }
