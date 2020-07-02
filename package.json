@@ -1,0 +1,17 @@
+{
+  "name": "whatsapp-chatbot",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.5",
+    "debug": "^2.6.9",
+    "express": "^4.17.1",
+    "http-errors": "^1.7.3",
+    "morgan": "^1.10.0",
+    "mysql": "^2.18.1",
+    "request": "^2.88.2"
+  }
+}
