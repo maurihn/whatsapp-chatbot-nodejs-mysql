@@ -56,14 +56,14 @@ const ChatFlow_ = async (item, txt, idconv) =>{
       switch(parseInt(txt)){
         case 1:
           sendMessage(sender, 'Hi, welocome to WhatsApp Chatbot', item.idInstance);
-          sql(`UPDATE tb_conv SET col_state = 1 WHERE col_phone = '${idconv.phone}'`);
+          sql(`UPDATE tb_conv SET col_status = 1 WHERE col_phone = '${idconv.phone}'`);
           setTimeout(() => {
             sendMessage(sender, '1. Send Text\\n2. Send image', item.idInstance);
           },2000);
           break;
           case 2:
             sendImage(sender, 'URL_IMAGE', 'Hi, welcome to WhatsApp Chatbot', item.idInstance);
-            sql(`UPDATE tb_conv SET col_state = 1 WHERE col_phone = '${idconv.phone}'`);
+            sql(`UPDATE tb_conv SET col_status = 1 WHERE col_phone = '${idconv.phone}'`);
             setTimeout(() => {
               sendMessage(sender, '1. Send Text\\n2. Send image', item.idInstance);
             },2000);
