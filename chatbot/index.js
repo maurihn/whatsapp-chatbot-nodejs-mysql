@@ -1,6 +1,5 @@
 var express = require('express');
 var router = express.Router();
-var request = require('request');
 var mysql      = require('mysql');
 var connection = mysql.createConnection({
   host     : 'SERVER',
@@ -8,13 +7,15 @@ var connection = mysql.createConnection({
   password : 'PASSWORD',
   database : 'DATABASE',
 });
+const shimli = require('@sheilim/shimli-sdk');
+shimli.config['token'] = 'YOUR_SHIMLI_TOKEN';
 
 router.post('/webhook', async function(req, res) {
   //CHAT
   try{
     if(req.query.token === "TOKEN_WEBHOOK"){
       let item = req.body;
-      if(item.ack == 0 && item.fromMe == false && item.type == 'chat' && item.group == false && !item.ticket){
+      if(item.fromMe == false && item.type == 'chat' && item.isGroupMsg == false){
         sendChatBot(item);
       }
       res.json({
@@ -38,16 +39,16 @@ router.post('/webhook', async function(req, res) {
 const sendChatBot = async item =>{
     let txt_ = String(item.body).trim();
     // GET ID AND STATUS OF CONVERSATION
-    let idconv = await getConv(item.sender);
+    let idconv = await getConv(item.from);
     ChatFlow_(item, txt_, idconv)
 }
 
 // CHATBOT FLOW EXAMPLE
 const ChatFlow_ = async (item, txt, idconv) =>{
-    let sender = item.sender;
+    let sender = item.from;
     
     if(idconv.status == 0){
-      sendMessage(sender, 'Hi, how can I help you today?\\n\\n1. Send Text\\n2. Send image', item.idInstance);
+      await shimli.sendMessage('chat', 'Hi, how can I help you today?\\n\\n1. Send Text\\n2. Send image', sender, 'ID_INSTANCE');
       // NEXT FLOW
       sql(`UPDATE tb_conv SET col_status = 1 WHERE col_phone = '${idconv.phone}'`);
     }
@@ -55,21 +56,22 @@ const ChatFlow_ = async (item, txt, idconv) =>{
     if(idconv.status == 1){
       switch(parseInt(txt)){
         case 1:
-          sendMessage(sender, 'Hi, welocome to WhatsApp Chatbot', item.idInstance);
+          await shimli.sendMessage('chat', 'Hi, welocome to WhatsApp Chatbot', sender, 'ID_INSTANCE');
           sql(`UPDATE tb_conv SET col_status = 1 WHERE col_phone = '${idconv.phone}'`);
           setTimeout(() => {
-            sendMessage(sender, '1. Send Text\\n2. Send image', item.idInstance);
+            await shimli.sendMessage('chat', '1. Send Text\\n2. Send image', sender, 'ID_INSTANCE');
           },2000);
           break;
           case 2:
-            sendImage(sender, 'URL_IMAGE', 'Hi, welcome to WhatsApp Chatbot', item.idInstance);
+            await shimli.sendMessage('image','URL_IMAGE', sender, 'ID_INSTANCE');
             sql(`UPDATE tb_conv SET col_status = 1 WHERE col_phone = '${idconv.phone}'`);
             setTimeout(() => {
-              sendMessage(sender, '1. Send Text\\n2. Send image', item.idInstance);
+              await shimli.sendMessage('chat', '1. Send Text\\n2. Send image', sender, 'ID_INSTANCE');
             },2000);
             break;
         default:
           sendMessage(sender, 'Enter the number of the required action:\\n1. Send Text\\n2. Send image', item.idInstance);
+          await shimli.sendMessage('chat', 'Enter the number of the required action:\\n1. Send Text\\n2. Send image', sender, 'ID_INSTANCE');
           break;
       }
     }
@@ -120,65 +122,5 @@ const getConv = phone =>{
     });
   })
 }
-
-
-// FUNCTIONS TO CONNECT TO SHIMLI
-// 1. CREATE ACOUNT www.enviarwhatsapp.com
-// 2. CONNECT WHATSAPP TO SHIMLI
-// 3. GO TO SHIMLI MENU -> API -> TOKEN AND WEBHOOK
-// 4. COPY TOKEN AND PASTE IT IN FUNCTIONS OF SHIMLI
-// 5. SET URL ON WEBHOOK SHIMLI PLATFORM
-const sendMessage = (phone, body, instance)=>{
-  request.post({
-    url: 'https://enviarwhatsapp.com/api/v2/send-msj?token=TOKEN',
-    form: {
-      phone: phone,
-      body:body,
-      instance: instance
-    }
-  }, function (e, r, body) {
-    console.log('SHIMLI RESPONSE', body);
-  })
-}
-
-const sendImage = (phone, url, caption, instance)=>{
-  request.post({
-    url: 'https://enviarwhatsapp.com/api/v2/send-image?token=TOKEN',
-    form: {
-      phone: phone,
-      url:url,
-      caption: caption,
-      instance: instance
-    }
-  }, function (e, r, body) {
-    console.log('SHIMLI RESPONSE', body);
-  })
-}
-
-const createTicket = (dataTicket, queue)=>{
-  request.post({
-    url: 'https://enviarwhatsapp.com/api/v2/ticket?token=TOKEN',
-    form: {
-      dataTicket,
-      queue
-    }
-  }, function (e, r, body) {
-    console.log('SHIMLI RESPONSE', body);
-  })
-}
-
-const addContact = (name, phone)=>{
-  request.post({
-    url: 'https://enviarwhatsapp.com/api/v2/contact/IDLIST?token=TOKEN',
-    form: {
-      name,
-      phone
-    }
-  }, function (e, r, body) {
-    console.log('SHIMLI RESPONSE', body);
-  })
-}
-
-// END FUNCTIONS TO CONNECT TO SHIMLIS
 
 module.exports = router;
